@@ -19,11 +19,11 @@ Reserve the full 280 minutes for student activities. Image the Pis, install depe
 - [ ] Flash Ubuntu Server 22.04 LTS 64-bit for Raspberry Pi. Give each Pi a unique hostname and verify SSH. Note its current DHCP Wi-Fi address.
 - [ ] Test Windows name resolution, TCP 22 and **actual UDP in both directions** from the assigned laptop. Verify that the classroom Wi-Fi permits device-to-device traffic on the same SSID. An internet-only guest WLAN can block it.
 - [ ] Clone the Git bundle on both machines. Check that the same baseline tag is available. Configure Git author identity before the first student commit.
-- [ ] Preinstall VS Code, Remote – SSH, Windows Python and pygame. Open the Pi project remotely once so VS Code Server is already installed. Open the local Windows GUI project in a separate window.
+- [ ] Preinstall VS Code, Remote – SSH, Windows Python and pygame. Open the Pi project remotely once so VS Code Server is already installed. Use the Windows VS Code rehearsal on page 3 to open the cloned folder in a second window and launch the GUI from its integrated PowerShell terminal.
 - [ ] Build the ARM64 image and run the real station acceptance on the next page. Rehearse using the joystick, both fault exercises, recording and isolated replay.
 - [ ] Put the three PDFs and offline bundle within reach. Assign operator and observer roles. Keep a spare data-capable USB cable/controller and a way to read the Pi's IP from its console or DHCP lease list.
 
-**Release a station to the class** when the paired laptops and Pis have passed the local checks on pages 2 and 3. Record actual outputs, station identity and the date. The delivered test record is on page 6.
+**Release a station to the class** when the paired laptops and Pis have passed the local checks on pages 2–4. Record actual outputs, station identity and the date. The delivered test record is on page 7.
 
 <!-- page -->
 <!-- section: Pi rehearsal -->
@@ -65,10 +65,41 @@ ros2 param get /udp_bridge telemetry_enabled
 **If the check fails.** A missing pose points to simulator startup or ROS discovery. For a Qt error, confirm the image installed `ros-humble-turtlesim` and the platform prints `offscreen`. For a socket bind error, close the other stack on that Pi. If a bag will not write, check `runs/` ownership and `LAB_UID`/`LAB_GID`. For a recorder timeout inspect its saved `record.log`. Repeat commissioning after correcting the cause.
 
 <!-- page -->
+<!-- section: Windows VS Code rehearsal -->
+## Rehearse the local Windows setup
+
+Ask a partner to start from the Windows desktop. Give them the name of the cloned folder and watch them complete this sequence before demonstrating the Pi.
+
+| Action to demonstrate | What the student should see |
+|---|---|
+| 1. Open **Start > Visual Studio Code**. If a remote window opens, choose **File > New Window**. | A local window for the laptop. The Pi window can stay open separately. |
+| 2. Choose **File > Open Folder...**. Browse to the user profile's `robotics-workshop` folder and click **Select Folder**. | On the example account the full path is `C:\Users\student\robotics-workshop`. Use each student's own profile on other PCs. |
+| 3. Open **Explorer** (Ctrl+Shift+E). | `requirements-windows.txt` and `operator_app` appear directly inside the top folder. A view showing only `source` and `workshop.bundle` means the extracted kit was opened. |
+| 4. Choose **Terminal > New Terminal**. Select **PowerShell** from the dropdown beside **+** if needed. | The **TERMINAL** tab is open below the editor. The local prompt starts with `PS` and contains a Windows path. |
+| 5. Check the folder and launch the application with the commands below. | The two path checks print `True`. The operator window shows **Local preview** and **OFFLINE**. |
+
+**Local VS Code terminal • Windows PowerShell**
+
+~~~powershell
+Get-Location
+Test-Path .\requirements-windows.txt
+Test-Path .\.venv\Scripts\python.exe
+.\.venv\Scripts\python.exe -m operator_app
+~~~
+
+**If a check fails.** A missing requirements file points to the wrong folder. A missing interpreter in the correct folder calls for first-time Python setup on page 6 of the Installation and Setup Guide. A Pi, WSL or container prompt calls for switching to the local Windows window.
+
+**Show what happens while the GUI runs.** Leave the GUI open. Show that its terminal is occupied, then choose **Terminal > New Terminal** for a second Windows prompt. Have the observer use the second terminal while the operator moves the physical stick. Close the GUI with **X**, then relaunch from its original terminal.
+
+**Station evidence.** Ask the observer to read the local project path, the changing raw axis and the fresh or offline indicator aloud. For a connected run, carry on to the classroom Wi-Fi rehearsal on the next page.
+
+<!-- page -->
 <!-- section: Windows and Wi-Fi rehearsal -->
 ## Prove the round trip on the classroom SSID
 
-**Windows PowerShell • local checkout**
+Leave the GUI running. Use a second local VS Code terminal for these checks.
+
+**Local VS Code terminal • second Windows PowerShell prompt**
 
 ~~~powershell
 $Pi = "robot-pi-01.local"
@@ -76,10 +107,9 @@ $Pi = "robot-pi-01.local"
 Test-NetConnection $Pi -Port 22
 Get-NetConnectionProfile
 joy.cpl
-.\.venv\Scripts\python.exe -m operator_app
 ~~~
 
-Use the assigned hostname. Confirm response to forward and left motion, return to zero at center and a stationary map on release. Note controller model and mode. Connect in the GUI and watch `ack` increase. Disconnect for at least 0.5 s before switching to a different controller session on the Pi.
+Close the controller panel. In the open GUI enter the station hostname, center the stick and click **Connect**. Check that `ack` advances, forward and left move the turtle, and releasing the stick stops it. Record the controller model and mode. Allow at least 0.5 s between operator sessions.
 
 | Symptom to reproduce | Passing observation | First diagnostic |
 |---|---|---|
@@ -89,24 +119,26 @@ Use the assigned hostname. Confirm response to forward and left motion, return t
 
 ### Windows receives no telemetry
 
-Check `/turtle1/cmd_vel` while moving the stick, the Pi pose topic and the telemetry parameter. If these work, confirm Windows has a process bound to UDP 5006. Check the active network profile. On an approved **Private** classroom network, this scoped inbound rule admits feedback only from the current Pi. Managed lab policy may require the administrator to create it.
+Check the Pi command and pose topics and the telemetry parameter. If all three are working, check the Windows socket with the GUI connected.
 
-**Windows PowerShell • second terminal, elevated for the firewall rule**
+**Local VS Code terminal • second Windows PowerShell prompt**
 
 ~~~powershell
 Get-NetUDPEndpoint -LocalPort 5006
+~~~
+
+For an approved **Private** network, a lab administrator can allow UDP 5006 from the current Pi. Use the station's verified name in this separate administrator shell.
+
+**Windows PowerShell (Administrator) • scoped firewall rule**
+
+~~~powershell
+$Pi = "robot-pi-01.local"
 $addresses = [Net.Dns]::GetHostAddresses($Pi)
 $ipv4 = $addresses | Where-Object AddressFamily -eq InterNetwork
-$rule = @{
-  DisplayName = "Robotics lab telemetry"
-  Direction = "Inbound"
-  Action = "Allow"
-  Profile = "Private"
-  Protocol = "UDP"
-  LocalPort = 5006
-  RemoteAddress = @($ipv4)[0].IPAddressToString
-}
-New-NetFirewallRule @rule
+$source = @($ipv4)[0].IPAddressToString
+New-NetFirewallRule -DisplayName "Robotics lab telemetry" -Profile Private `
+  -Direction Inbound -Action Allow -Protocol UDP -LocalPort 5006 `
+  -RemoteAddress $source
 ~~~
 
 **Expected result.** Reconnect, confirm the age drops below a second and record the current Pi address used to scope the rule. If name lookup is the original failure, use the DHCP address from the station card. Update the rule if that address changes. On a shared laptop, remove the temporary rule after the workshop using `Remove-NetFirewallRule -DisplayName "Robotics lab telemetry"` in elevated PowerShell.
@@ -118,10 +150,10 @@ New-NetFirewallRule @rule
 | Time | Instructor moves | Check before moving on |
 |---|---|---|
 | 0:00–0:35 | Spend 8 min on a USV yaw example, 10 min drawing the loop, 12 min comparing robots and 5 min sharing. | A student can name a reference, actuator and independent observation. |
-| 0:35–1:10 | Use 10 min for hostnames/SSH, 12 min for the two VS Code windows and 13 min for paths and Git. | Each partner identifies the terminal machine and reads its Git revision. |
+| 0:35–1:10 | Use 10 min to open the Windows folder and PowerShell, 12 min for SSH and the Pi window, and 13 min for paths and Git. | Each partner identifies the terminal machine and reads its Git revision. |
 | 1:10–1:50 | Spend 10 min on host/image/container, 15 min inspecting typed topics and 15 min tracing zero command and pose. | Each pair has seen a Twist and a Pose in the live graph. |
 | 1:50–2:00 | Break. Keep Compose detached and switch roles. | |
-| 2:00–2:35 | Allow 8 min for USB, 12 min for axis identification, 10 min for mapping and 5 min to save calibration. | Center reads zero. Forward and left have the intended signs. |
+| 2:00–2:35 | Allow 8 min for USB and local GUI launch, 12 min to identify axes, 10 min for mapping and 5 min to save calibration. | Center reads zero. Forward and left have the intended signs. |
 | 2:35–3:20 | Allow 12 min to connect/drive, 12 min per fault and 9 min to discuss. | Pairs explain why a fresh map can show a stopped robot and a stale map can hide motion. |
 | 3:20–3:30 | Break. Verify telemetry is enabled. | |
 | 3:30–4:05 | Use 5 min for reset and metadata, 8 min to record, 10 min to inspect and 12 min to replay. | Students read actual timestamps and explain the source of replayed pose. |
@@ -135,7 +167,7 @@ New-NetFirewallRule @rule
 <!-- section: Recording and recovery -->
 ## Keep a usable rehearsal run
 
-Record one maneuver by following Student Guide pages 9–10. Capture it using the paired Windows GUI after the station acceptance has completed. It gives students a recoverable data set if a joystick fails during class.
+Record one maneuver by following Student Guide pages 11–12. Capture it using the paired Windows GUI after the station acceptance has completed. It gives students a recoverable data set if a joystick fails during class.
 
 | Artifact under `runs/arc01/` | What to check |
 |---|---|
@@ -166,7 +198,7 @@ Ask each student to show one signal at each interface. Have them classify a faul
 | Wire format, range checks, deadband, command ownership/timeout, feedback freshness and CSV matching | Passed 13 automated checks on Debian 13 x86_64, CPython 3.12.14. Includes real IPv4 loopback datagrams. CSV input was synthetic. |
 | GUI and both loss modes | Tk 9.0 on a virtual Linux desktop. Actual GUI, map and UDP transport passed with synthetic stick and pose, including recovery. |
 | Qt offscreen mechanism | Qt 5.15.15 on Linux x86_64 created a widget and pixmap, painted and delivered five timer callbacks without a display. |
-| Windows 11 and USB Logitech | Awaiting station validation. Target CPython 3.11 x64 and pygame 2.6.1. Check device enumeration, axis signs and physical unplug/replug. |
+| Windows 11, local VS Code and USB Logitech | Awaiting station validation. Use page 3 to verify the local folder, integrated PowerShell launch and physical controller. Target CPython 3.11 x64 and pygame 2.6.1. Check axis signs and unplug/replug. |
 | Pi 4 ARM64, Docker, real ROS 2 Humble | Awaiting station validation. The image build includes a real display-free motion check. The running-station script exercises actual UDP, ROS topics, recording and deserialization. |
 | Classroom WLAN, DHCP/mDNS, firewall and rosbag replay | Awaiting paired-station validation. Record the real station evidence below. |
 
@@ -174,7 +206,7 @@ Ask each student to show one signal at each interface. Have them classify a faul
 
 | Instructor sign-off | Observed result / date / initials |
 |---|---|
-| Windows versions, USB model/mode, raw signs | __________________________________ |
+| Windows versions, local VS Code launch, USB model/mode and raw signs | __________________________________ |
 | Pi 4 model/ARM64, Ubuntu version, Docker/Compose | __________________________________ |
 | Hostname and actual two-way UDP on classroom Wi-Fi | __________________________________ |
 | Headless motion check and station bag path | __________________________________ |

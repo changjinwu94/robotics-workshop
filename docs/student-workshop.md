@@ -19,7 +19,7 @@
 | 3:30–4:05 | Record and replay | Bag, timestamps and run settings |
 | 4:05–4:40 | Change and redeploy | A commit and a repeat run |
 
-**Start with a prepared station.** You need the assigned Pi hostname, the Pi login, a wired Logitech controller and local and remote copies of the starter repository. The Installation and Setup Guide prepares all four. Keep one local VS Code window on Windows and one Remote – SSH window open to the Pi.
+**Start with a prepared station.** You need the assigned Pi hostname, the Pi login, a wired Logitech controller and local and remote copies of the starter repository. The Installation and Setup Guide prepares all four. Use pages 4–5 to open two VS Code windows. The local Windows window runs the joystick GUI. The SSH window runs commands on the Pi.
 
 <!-- page -->
 <!-- section: Block 1  /  35 minutes -->
@@ -67,14 +67,42 @@ Imagine a USV turning toward a survey line. Its planner selects a desired headin
 **If the team gets stuck.** Start with the yaw moment on the free-body diagram. Work backward to an actuator that can produce it, then forward to an independent measurement.
 
 <!-- page -->
-<!-- section: Block 2  /  35 minutes -->
-## Open the right machine
+<!-- section: Block 2  /  First 10 of 35 minutes -->
+## Open the Windows workshop folder in VS Code
 
-A hostname is a name for a machine. DHCP assigns its current IP address. A port selects a service at that address. SSH uses TCP port 22 and gives you a terminal on the Pi without attaching a screen. A path names a file or folder on whichever machine owns that terminal.
+The Windows laptop reads the USB controller. Open its copy of the project first, then use a second VS Code window for the Pi. On the example laptop, the cloned project is `C:\Users\student\robotics-workshop`. Use your own Windows account name. If you already have PowerShell open at the cloned root, `code -n .` opens it directly in a new VS Code window.
 
-**Windows PowerShell • local VS Code**
+### 1. Open the project folder
 
-Use the hostname on the station card. Filter for an IPv4 answer because the workshop UDP socket uses IPv4.
+From Windows **Start**, open **Visual Studio Code**. If your current window shows **SSH: labpi** or **WSL** in the lower-left corner, keep it open and choose **File > New Window**. Work in the local window for the steps below.
+
+Choose **File > Open Folder...**. Click the folder chooser's address bar, paste the full path to your cloned `robotics-workshop` folder, and press Enter. Click **Select Folder**. You can also browse through **This PC > C: > Users > your account > robotics-workshop**. If Workspace Trust appears, confirm that you trust the course folder you just selected.
+
+### 2. Check the Explorer sidebar
+
+Click the **Explorer** icon on the left, or press **Ctrl+Shift+E**. The top folder should be **robotics-workshop**. Directly beneath it, find `operator_app`, `settings`, `README.md`, and `requirements-windows.txt`. If the top folder is `workshop-kit`, `source` or `operator_app`, use **File > Open Folder...** again and choose the cloned project root.
+
+### 3. Open the integrated terminal
+
+From the top menu choose **Terminal > New Terminal**. Click in the **TERMINAL** panel at the bottom. If its tab shows Bash or Command Prompt, use the arrow beside **+** and choose **PowerShell** or **Windows PowerShell**. Enter these lines one at a time.
+
+**Local VS Code terminal • Windows PowerShell**
+
+~~~powershell
+Get-Location
+Test-Path .\requirements-windows.txt
+Test-Path .\operator_app\__main__.py
+~~~
+
+**Checkpoint.** The path ends in `\robotics-workshop` and both checks print `True`. A typical prompt is `PS C:\Users\student\robotics-workshop>`. Type commands after the `>` sign. If only the working directory is wrong, run `Set-Location "$HOME\robotics-workshop"` in this PowerShell terminal and repeat the checks.
+
+<!-- page -->
+<!-- section: Block 2  /  Remaining 25 of 35 minutes -->
+## Open the Pi in a second VS Code window
+
+A hostname names a machine. DHCP assigns its current IP address. A port selects a service at that address. SSH uses TCP port 22 to open a shell on the Pi. Use the station's verified hostname and login below.
+
+**Local VS Code terminal • Windows PowerShell**
 
 ~~~powershell
 $Pi = "robot-pi-01.local"
@@ -83,7 +111,7 @@ Test-NetConnection $Pi -Port 22
 ssh "robot@$Pi"
 ~~~
 
-**Pi host over SSH • start at home**
+**Pi host • the same terminal after SSH logs in**
 
 ~~~bash
 pwd
@@ -93,15 +121,23 @@ cd ~/robotics-workshop
 git status --short --branch
 git log -3 --oneline
 git rev-parse --short HEAD
+exit
 ~~~
 
-**Read the shell.** A terminal runs commands one line at a time. In Bash, `~` means your home folder. `pwd` prints your location, `ls` lists its contents and `cd` changes folders.
+In Bash, `~` means your home folder. `pwd` prints the current folder, `ls` lists it, and `cd` changes folders. Record the Pi hostname and Git revision. After `exit`, the terminal shows the Windows `PS C:\...>` prompt again.
 
-**What to observe.** The first shell shows the Pi's home folder. The hostname matches your station, and Git shows the starter history. Write down the short revision. Use `exit` to leave the SSH shell when you want PowerShell back.
+**Open the remote editor.** Keep the local project open. Choose **File > New Window**. Press **Ctrl+Shift+P**, choose **Remote-SSH: Connect to Host...**, and select `labpi`. In the connected window the lower-left corner shows **SSH: labpi**. Choose **File > Open Folder...**, enter `/home/robot/robotics-workshop` (use the station login in place of `robot` if different), and confirm with **OK**. Choose **Terminal > New Terminal**.
 
-**Open the editor.** In VS Code on Windows, press Ctrl+Shift+P, choose **Remote-SSH: Connect to Host**, select `labpi` from the setup guide, then **Open Folder** and select `/home/robot/robotics-workshop`. In its new terminal run `hostname`. Open a second, local VS Code window at `$HOME\robotics-workshop` for the GUI.
+**Pi host • integrated terminal in the SSH: labpi window**
 
-**If the name fails.** Ask for the current Wi-Fi address on the station card. From a Pi console run `ip -4 -br addr` and read the connected Wi-Fi interface. Put that address in `$Pi` temporarily and repeat the Windows tests. If the address works, check the station spelling and mDNS. If TCP 22 also fails by address, check SSH service and wireless client isolation with the instructor.
+~~~bash
+hostname
+pwd
+~~~
+
+**Checkpoint.** Expect your station hostname and its Linux project path. Use this window for Docker. Switch to the Windows window for the joystick and GUI.
+
+**If the name fails.** At the Pi console run `ip -4 -br addr` and read the connected Wi-Fi interface. Substitute that current address for `$Pi` and repeat the Windows checks. If the IP works, check station spelling and mDNS. If TCP 22 also fails by IP, check the SSH service and wireless client isolation.
 
 <!-- page -->
 <!-- section: Block 3  /  40 minutes -->
@@ -142,20 +178,61 @@ ros2 topic echo /turtle1/pose --once
 **Break • 10 minutes.** Leave the Pi stack running and switch to the local Windows window.
 
 <!-- page -->
-<!-- section: Block 4  /  35 minutes -->
-## Calibrate the joystick in local preview
+<!-- section: Block 4  /  First 8 of 35 minutes -->
+## Run the joystick GUI from the VS Code terminal
 
-Plug the wired Logitech into Windows. For controllers with an X/D mode switch, select one mode and keep it fixed throughout the experiment. Open the Windows controller panel, pick the device, and move one axis at a time in **Properties**.
+Plug the Logitech controller into the Windows laptop. Switch back to its **local** VS Code window. Select **Terminal > New Terminal** and choose PowerShell if needed. Click beside the `PS` prompt in the **TERMINAL** panel.
 
-**Windows PowerShell • local repository**
+### 1. Check the project and its Python environment
+
+**Local VS Code terminal • Windows PowerShell**
 
 ~~~powershell
-joy.cpl
-cd "$HOME\robotics-workshop"
+Get-Location
+Test-Path .\requirements-windows.txt
+Test-Path .\.venv\Scripts\python.exe
+~~~
+
+The path should end in `\robotics-workshop`. The first `True` confirms the project folder. The second checks for the workshop's Python interpreter. On a prepared station both are `True` and you can go straight to step 3.
+
+### 2. First use only • install the Windows dependencies
+
+If the project check is `True` and the interpreter check is `False`, run the two commands below. The first creates `.venv` in the project. The second installs pygame for that interpreter. If `py -3.11` cannot find Python, use the 64-bit Python 3.11 installation steps in the setup guide.
+
+**Local VS Code terminal • Windows PowerShell**
+
+~~~powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r .\requirements-windows.txt
+~~~
+
+### 3. Start the operator application
+
+**Local VS Code terminal • Windows PowerShell**
+
+~~~powershell
 .\.venv\Scripts\python.exe -m operator_app
 ~~~
 
-Page 12 identifies each GUI measurement. Leave the GUI in **Local preview**. Read the raw axis labels. Record the two channels that move when you push forward and when you push left. Note the sign and the largest value observed while centered. A normalized axis is roughly -1 to +1.
+A separate **Robot operator • turtlesim** window opens. Expect **Local preview** and **OFFLINE** before connecting to the Pi. Move one stick and watch the raw axes and requested velocities change. The `-m operator_app` argument starts the application package from the project root.
+
+**While it runs.** This terminal is busy running the GUI. For a second command prompt, switch back to VS Code and choose **Terminal > New Terminal**. To stop the GUI, close its window with **X**. The original terminal returns to its `PS` prompt. Run the same launch command there next time.
+
+**If startup fails.** For `No module named pygame` run the pip command in step 2. For `No module named operator_app` repeat the folder checks on page 4.
+
+<!-- page -->
+<!-- section: Block 4  /  Remaining 27 of 35 minutes -->
+## Calibrate the joystick in local preview
+
+Leave the GUI running. In the local VS Code window choose **Terminal > New Terminal** to open a second PowerShell prompt. Run the Windows controller panel from it. Select the Logitech, open **Properties**, and move one axis at a time. Close the controller panel and return to the workshop GUI.
+
+**Local VS Code terminal • second Windows PowerShell prompt**
+
+~~~powershell
+joy.cpl
+~~~
+
+If the controller has an X/D mode switch, keep its position fixed throughout the experiment. In **Local preview**, record which two raw axes move when you push forward and left. Note each sign and the largest value at center. A normalized axis is roughly -1 to +1. The operator-screen reference at the end of this guide labels the display.
 
 | Action | Observe | Desired result after mapping |
 |---|---|---|
@@ -164,13 +241,13 @@ Page 12 identifies each GUI measurement. Leave the GUI in **Local preview**. Rea
 | Push left only | Index and sign of changing axis | Positive `w`, near-zero `v` |
 | Push halfway, then fully | Requested speed | Magnitude increases toward the configured maximum. |
 
-**How the map works.** A deadband of 0.12 suppresses center drift. Outside it the code scales the remaining travel back to 0–1. With a raw forward value of -0.56, sign -1 and maximum 2.0 u/s, the request is (0.56 - 0.12) / (1 - 0.12) × 2.0 = 1.0 u/s. Here `u` means one turtlesim world unit.
+**How the map works.** A deadband of 0.12 suppresses center drift. Outside it the code scales the remaining travel back to 0–1. With raw forward input -0.56, sign -1 and maximum 2.0 u/s, the request is (0.56 - 0.12) / (1 - 0.12) × 2.0 = 1.0 u/s. Here `u` means one turtlesim world unit.
 
-**If the wrong quantity moves.** In the local VS Code window edit `settings/operator.json`. Set `forward_axis` and `turn_axis` from your observations. Set each sign to +1 or -1 (JSON uses `1` for positive one). Save, close the GUI and relaunch it. If there are no raw axes, check `joy.cpl` and reconnect the USB plug. With the controller absent the GUI requests zero.
+**If the wrong quantity moves.** In the local Explorer expand **settings**, then click **operator.json**. Set `forward_axis` and `turn_axis` to your measured indices, then set each sign to `1` or `-1`. Press **Ctrl+S**. Close the operator window with **X**. Select the original GUI terminal, press **Up Arrow**, then **Enter** to repeat its launch command. If there are no raw axes, check `joy.cpl` and reconnect the USB plug. An absent controller produces zero requests.
 
-**Keep a known baseline.** If you changed the mapping to fit your hardware, commit the calibrated settings before recording. Configure your Git author as described in the setup guide.
+**Save a calibrated baseline.** If you changed the mapping, use the spare Windows terminal to commit it before recording. Configure your Git author as described in the setup guide.
 
-**Windows PowerShell • local repository**
+**Local VS Code terminal • second Windows PowerShell prompt**
 
 ~~~powershell
 git diff -- settings/operator.json
@@ -269,7 +346,7 @@ ros2 bag record -s sqlite3 -o /runs/arc01/bag \
 
 Wait for both subscription messages. Hold neutral for two seconds, drive forward for one second, add a gentle left turn for one second, then release and wait two seconds. Keep away from the wall. Stop the recorder with Ctrl+C and wait for the shell prompt so SQLite and metadata are finalized.
 
-**Windows PowerShell • new local terminal in the repository**
+**Local VS Code terminal • second Windows PowerShell prompt**
 
 ~~~powershell
 scp .\local\operator-session.json labpi:robotics-workshop/runs/arc01/operator.json
@@ -340,17 +417,16 @@ docker compose up -d
 
 Predict the full-forward command if you reduce `max_v` from 2.0 to 1.0 u/s and leave the turn scale unchanged. Capture the calibrated revision first. Close the GUI so its next launch will reload the edited settings.
 
-**Windows PowerShell • local repository**
+**Local VS Code terminal • Windows PowerShell**
 
 ~~~powershell
 git status --short --branch
 git switch -c lab/lower-speed
-code settings/operator.json
 ~~~
 
-In the local file, set `max_v` to `1.0`. Save it. Inspect the diff and commit this one change. If your baseline already used 1.0, pick another positive value below 3.0 and record it.
+In the local VS Code Explorer expand **settings** and click **operator.json**. Set `max_v` to `1.0` and press **Ctrl+S**. Click back into the PowerShell terminal. Inspect the diff and commit this one change. If your baseline already used 1.0, pick another positive value below 3.0 and record it.
 
-**Windows PowerShell • same repository**
+**Local VS Code terminal • Windows PowerShell in the same folder**
 
 ~~~powershell
 git diff -- settings/operator.json

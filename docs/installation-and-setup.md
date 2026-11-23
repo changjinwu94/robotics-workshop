@@ -11,6 +11,8 @@ Use this guide before the 4-hour-40-minute class, or to rebuild a station later.
 | Pi 4 host | 64-bit Ubuntu Server 22.04 LTS for Raspberry Pi, SSH, Avahi, Git, Docker Engine and Compose plugin | Headless login, remote editing, launch Compose, store bags |
 | Pi container | Official Humble ROS base, turtlesim, rclpy, rosbag2, workshop ROS package | Run simulator, bridge, introspection and bag tools |
 
+**Prepare the Windows tools.** Install VS Code, Git for Windows and 64-bit Python 3.11 from python.org with Tcl/Tk and the `py` launcher. In VS Code press **Ctrl+Shift+X**, search for Microsoft's **Remote - SSH** extension and select **Install**. [VS Code Remote – SSH](https://code.visualstudio.com/docs/remote/ssh)
+
 ### Image a fresh SD card
 
 Use a Pi 4 power supply and a microSD card with space for the ROS image and recordings. A 32 GB card is a practical workshop choice. In Raspberry Pi Imager select Raspberry Pi 4, then the **64-bit Ubuntu Server 22.04 LTS preinstalled Raspberry Pi image**. If needed choose **Use custom** and select `ubuntu-22.04.5-preinstalled-server-arm64+raspi.img.xz` from the Ubuntu release directory. Selecting the target SD card and writing an image erases its existing contents. [Ubuntu Raspberry Pi images](https://cdimage.ubuntu.com/releases/22.04/release/)
@@ -47,7 +49,9 @@ systemctl is-active ssh avahi-daemon
 ip -4 -br addr
 ~~~
 
-**Windows PowerShell • assigned station**
+On Windows, open Visual Studio Code from Start. Choose **Terminal > New Terminal**. In the bottom **TERMINAL** panel select a local **PowerShell** profile from the dropdown beside **+**. Run the Windows lines there. If `ssh -V` fails, install **OpenSSH Client** in Windows Optional Features and reopen VS Code. [Microsoft OpenSSH](https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse)
+
+**Local VS Code terminal • Windows PowerShell on the assigned station**
 
 ~~~powershell
 $Pi = "robot-pi-01.local"
@@ -72,47 +76,83 @@ Use `ssh labpi` and the VS Code host named `labpi`. The GUI uses the actual host
 
 <!-- page -->
 <!-- section: Source installation -->
-## Clone the offline repository on both machines
+## Clone the workshop from a VS Code terminal
 
-Install Git for Windows, VS Code, its **Remote – SSH** extension and 64-bit Python 3.11 from python.org. Keep Tcl/Tk and the `py` launcher enabled in the Python installer. Windows 11 typically provides the OpenSSH client under Optional Features. If `ssh -V` fails, install **OpenSSH Client** there, then reopen PowerShell. [VS Code Remote – SSH](https://code.visualstudio.com/docs/remote/ssh) · [Microsoft OpenSSH](https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse)
+**Already cloned on Windows?** Keep your existing checkout. Continue with **Open the cloned folder on Windows** on the next page. If the Pi still needs its own copy, transfer the bundle and use the Pi commands below.
 
-Save `Robotics_Workshop_Starter.zip` in Downloads. The commands below use a fresh `workshop-kit` extraction folder and a working checkout in your home directory. The ZIP's `source` folder is a convenient reading copy. Cloning `workshop.bundle` restores the actual commits, branch and baseline tag.
+For a first installation, save `Robotics_Workshop_Starter.zip` in Downloads. In a **local** VS Code window choose **Terminal > New Terminal**. In the bottom **TERMINAL** panel, use the dropdown beside **+** to select **PowerShell** if needed. Run the following from Windows.
 
-**Windows PowerShell • from any folder**
+**Local VS Code terminal • Windows PowerShell, fresh installation**
 
 ~~~powershell
 cd $HOME
 $kit = Join-Path $HOME "workshop-kit"
 Expand-Archive "$HOME\Downloads\Robotics_Workshop_Starter.zip" $kit
 git clone -b main "$kit\workshop.bundle" robotics-workshop
-scp "$kit\workshop.bundle" labpi:workshop.bundle
 cd robotics-workshop
-git log -3 --oneline
-git tag --list
+git rev-parse --short HEAD
+git tag --list workshop-v1
 ~~~
 
-**Pi host over SSH • from the station user's home**
+**Local VS Code terminal • Windows PowerShell, transfer the bundle to the Pi**
+
+~~~powershell
+scp "$HOME\workshop-kit\workshop.bundle" labpi:workshop.bundle
+ssh labpi
+~~~
+
+**Pi host • the same terminal after SSH logs in, fresh Pi checkout**
 
 ~~~bash
 cd ~
 git clone -b main ~/workshop.bundle robotics-workshop
 cd ~/robotics-workshop
-git log -3 --oneline
-git describe --tags --exact-match
+git rev-parse --short HEAD
+git tag --list workshop-v1
+exit
 ~~~
 
-**Expected result.** Both checkouts show the tag `workshop-v1` and matching short revisions at the initial baseline. If the destination folder exists from a previous class, inspect `git status` there before deciding whether to reuse it or clone to a new directory.
+**Expected result.** The Windows and Pi clones of the same bundle show matching short revisions, and both contain the original `workshop-v1` tag. If a project folder already exists, inspect its Git status before choosing how to update it. After `exit` you are back in Windows PowerShell.
 
-**Configure an author in each checkout.** On both machines, from the cloned repository, enter your name and preferred course email. The settings below apply only to that repository.
+**Configure a Git author once in each checkout.** In each machine's project terminal, set the name and email you want on your workshop commits. A commit records a snapshot. Stage files with `git add` to choose what it contains. A branch names a line of commits.
 
-**Windows PowerShell or Pi host • run separately in each cloned repository**
+**Windows PowerShell or Pi host • from the corresponding cloned project root**
 
 ~~~bash
 git config user.name "Your Name"
 git config user.email "your-name@example.edu"
 ~~~
 
-A **commit** records a named snapshot. **Stage** a change with `git add` to select it for that snapshot. A **branch** lets your team keep a sequence of experiments. The local history works while offline. GitHub sharing is on page 6.
+<!-- page -->
+<!-- section: Windows workspace -->
+## Open the cloned folder on Windows
+
+### 1. Select the folder in local VS Code
+
+Open **Start > Visual Studio Code** on Windows. Keep your Pi session available in its own window. If the lower-left corner shows **SSH: labpi**, **WSL** or a container connection, choose **File > New Window** and use a local window.
+
+Choose **File > Open Folder...**. In the Windows folder chooser, browse to **This PC > C: > Users > your account > robotics-workshop**. Alternatively, click the address bar, paste the full folder path and press Enter. For the example Windows account it is `C:\Users\student\robotics-workshop`. Click **Select Folder**. Confirm Workspace Trust if prompted and you recognize the course folder. [VS Code folders and workspaces](https://code.visualstudio.com/docs/editing/workspaces/workspaces)
+
+If you are already at the cloned root in Windows PowerShell, the shortcut `code -n .` opens the current folder in a new VS Code window. Use **File > Open Folder...** if Windows cannot find the `code` command. [VS Code command line](https://code.visualstudio.com/docs/configure/command-line)
+
+### 2. Identify the project root
+
+Press **Ctrl+Shift+E** to open **Explorer**. Look for `operator_app`, `robot_lab`, `settings`, `requirements-windows.txt` and `README.md` directly under the top folder. If you see `workshop.bundle` next to `source`, the selected folder is the extracted kit. Reopen the cloned `robotics-workshop` folder.
+
+### 3. Start PowerShell inside that window
+
+Choose **Terminal > New Terminal**. In the panel below the editor click **TERMINAL**. If the terminal tab names a different shell, click the arrow beside **+** and select **PowerShell** or **Windows PowerShell**. Paste each command at the prompt and press Enter. [VS Code integrated terminal](https://code.visualstudio.com/docs/terminal/basics)
+
+**Local VS Code terminal • Windows PowerShell**
+
+~~~powershell
+Get-Location
+Test-Path .\requirements-windows.txt
+Test-Path .\operator_app\__main__.py
+git status --short --branch
+~~~
+
+**Expected result.** A Windows path ending in `\robotics-workshop`, two `True` values and the current branch (initially `main`). If the terminal starts in another Windows folder, run `Set-Location "$HOME\robotics-workshop"`. If the prompt starts with the Pi username and hostname, use the local VS Code window. Leave this window open for the operator GUI.
 
 <!-- page -->
 <!-- section: Docker on the Pi -->
@@ -120,7 +160,9 @@ A **commit** records a named snapshot. **Stage** a change with `git add` to sele
 
 From a fresh Ubuntu Jammy installation, the included installer adds Docker's official apt signing key and Ubuntu repository, then installs Docker Engine, the CLI, Buildx and Compose. Review the script in VS Code. If Docker is already installed and `docker compose version` works, use the existing installation. On a previously managed Pi consult its owner before replacing conflicting distribution packages. [Docker Engine for Ubuntu](https://docs.docker.com/engine/install/ubuntu/)
 
-**Pi host over SSH • repository root**
+Keep the Windows project open. In a second VS Code window press **Ctrl+Shift+P**, select **Remote-SSH: Connect to Host...**, and choose `labpi`. Once the status bar shows **SSH: labpi**, choose **File > Open Folder...**, enter `/home/robot/robotics-workshop` (adjust for the station user), then choose **Terminal > New Terminal**.
+
+**Pi host over SSH • integrated terminal in the remote VS Code window**
 
 ~~~bash
 cd ~/robotics-workshop
@@ -129,7 +171,7 @@ sudo usermod -aG docker "$USER"
 exit
 ~~~
 
-Reconnect over SSH to obtain the new group membership. Membership in the Docker group grants host-level administrative capability. On centrally managed stations the administrator can prepare the user or run Docker commands for the class.
+Close the remote VS Code connection after changing group membership. In the local VS Code PowerShell terminal run `ssh labpi` to obtain a fresh Pi login for the following commands. Membership in the Docker group grants host-level administrative capability. On centrally managed stations the administrator can prepare the user or run Docker commands for the class.
 
 **Pi host over SSH • new login**
 
@@ -153,38 +195,48 @@ docker compose exec robot lab-env python3 /opt/lab/tools/accept_station.py
 
 <!-- page -->
 <!-- section: Windows operator -->
-## Launch the local GUI and verify each interface
+## Install Python dependencies and run the GUI
 
-A Python virtual environment keeps this project's pygame version together with the selected interpreter. The GUI and joystick run on the local Windows machine. A second VS Code window uses Remote – SSH for the Pi files and shell.
+Return to the local VS Code window opened on page 4. Choose **Terminal > New Terminal**. Confirm the PowerShell prompt ends in `\robotics-workshop>`. A Python virtual environment is a project folder that holds its interpreter and dependencies.
 
-**Windows PowerShell • local repository**
+### First setup on this Windows checkout
+
+**Local VS Code terminal • Windows PowerShell**
 
 ~~~powershell
-cd "$HOME\robotics-workshop"
+py -3.11 --version
 py -3.11 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements-windows.txt
+.\.venv\Scripts\python.exe -m pip install -r .\requirements-windows.txt
 .\.venv\Scripts\python.exe -m tkinter
 ~~~
 
-Close the Tk demonstration window. Plug in the wired Logitech, open `joy.cpl` and test its axes in **Properties**. Start the GUI using its virtual-environment interpreter directly. This works without a PowerShell activation script.
+The first command should report `Python 3.11.x`. If it fails, install the 64-bit Python 3.11 runtime and launcher, then reopen VS Code. Close the small Tk test window with **X** to get the prompt back. The launch command uses the interpreter in `.venv` directly. [Python virtual environments](https://docs.python.org/3.11/library/venv.html)
 
-**Windows PowerShell • local repository**
+**Local VS Code terminal • Windows PowerShell, installation check**
 
 ~~~powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
+~~~
+
+Expect `OK`. Plug the wired Logitech into the laptop. In the same terminal run `joy.cpl`, select the controller, test the axes in **Properties**, and close the Windows controller panel.
+
+### Every workshop session
+
+**Local VS Code terminal • Windows PowerShell, cloned project root**
+
+~~~powershell
 .\.venv\Scripts\python.exe -m operator_app
 ~~~
 
-Inspect the raw axis indices while the GUI is disconnected. Edit `settings/operator.json` locally to match forward/turn axes, signs and the station's verified hostname, then restart the program. Use **Connect**. A fresh pose and advancing `ack` confirm a round trip. The new `local/operator-session.json` contains the effective settings. A new connection replaces it. [pygame joystick API](https://www.pygame.org/docs/ref/joystick.html) · [pygame 2.6.1](https://pypi.org/project/pygame/2.6.1/)
+A separate **Robot operator • turtlesim** window opens in **Local preview** with the badge **OFFLINE**. Move the stick and check the raw axes. Once the Pi service is running, enter the station hostname, center the stick and select **Connect**. Look for **FRESH**, an advancing `ack` and a changing pose.
 
-| Stop point | Expected observation | If it fails |
-|---|---|---|
-| USB input | Raw axes change locally in preview. | Test Windows controller properties and inspect the cable and X/D mode. |
-| Forward path | Pi `/turtle1/cmd_vel` changes with the stick. | Check the GUI's target hostname, port 5005/UDP, Pi service and peer-to-peer Wi-Fi. |
-| Return path | Pi pose and Windows map change, age stays below 1.0 s. | Check the telemetry parameter, UDP 5006, firewall profile and bound socket. |
-| Remote editing | VS Code's lower-left corner shows SSH and the Pi alias. | Connect using the saved SSH profile and open the Pi's cloned project folder. |
+| What you see | What to do in VS Code |
+|---|---|
+| No prompt while the GUI is open | This terminal is running the app. Choose **Terminal > New Terminal** for another PowerShell prompt. Close the GUI with **X** to return to the original prompt. |
+| `No module named pygame` | Use the pip command above from the same project and relaunch with the relative `.venv` interpreter. |
+| Wrong forward/turn axis or sign | In Explorer click **settings > operator.json**. Edit the mapping, press **Ctrl+S**, close the GUI and rerun the launch command in its original terminal. |
 
-**Expected result.** A team can operate the simulation with the Pi display connectors unused. Rehearse both one-way loss exercises in the Student Workshop Guide before class.
+On connection the GUI writes the effective settings to `local/operator-session.json`. Copy that file to the experiment folder before the next connection. For an empty GUI map, compare the Pi command and pose streams. A changing `/turtle1/cmd_vel` verifies the forward path on UDP 5005. If `/turtle1/pose` changes too, check the return path on UDP 5006 using page 4 of the Instructor Preparation Guide. [pygame joystick API](https://www.pygame.org/docs/ref/joystick.html) · [pygame 2.6.1](https://pypi.org/project/pygame/2.6.1/)
 
 <!-- page -->
 <!-- section: Sharing and repeat installation -->
@@ -192,7 +244,9 @@ Inspect the raw axis indices while the GUI is disconnected. Edit `settings/opera
 
 Create an empty GitHub repository for the course and choose its visibility. Keep its HTTPS or SSH clone URL at hand. For an HTTPS remote, use Git Credential Manager or the course's approved sign-in when prompted. From the original Windows clone, point the offline bundle's `origin` at that repository and upload the prepared history. [GitHub import guide](https://docs.github.com/en/repositories/creating-and-managing-repositories/adding-locally-hosted-code-to-github)
 
-**Windows PowerShell • local repository**
+In the local terminal below, run the first line, then paste the repository URL when PowerShell asks for it and press Enter.
+
+**Local VS Code terminal • Windows PowerShell in the cloned repository**
 
 ~~~powershell
 $CourseRepo = Read-Host "Paste the empty course repository clone URL"
@@ -287,4 +341,4 @@ Type a few characters. With the jumper fitted, the receiver should display the c
 - Windows firewall rules can be scoped to a protocol, local port, source address and active profile. [Microsoft firewall rule reference](https://learn.microsoft.com/en-us/powershell/module/netsecurity/new-netfirewallrule)
 - The Ubuntu guide describes preparing storage and first boot on a Raspberry Pi. [Ubuntu on Raspberry Pi](https://ubuntu.com/tutorials/how-to-install-ubuntu-on-your-raspberry-pi)
 
-**Commissioning record.** Use page 6 of the Instructor Preparation Guide to distinguish the delivered software tests from the checks performed on your actual Windows laptop, Raspberry Pi 4 and classroom network.
+**Commissioning record.** Use page 7 of the Instructor Preparation Guide to distinguish the delivered software tests from the checks performed on your actual Windows laptop, Raspberry Pi 4 and classroom network.

@@ -8,6 +8,37 @@ Open [Installation and Setup Guide](docs/installation-and-setup.md) to prepare a
 
 The ZIP includes an offline Git bundle with a real main branch and the tag `workshop-v1`. Clone the bundle on each machine using the setup guide. The expanded source tree in the ZIP is a reading copy. Run all commands from a cloned repository.
 
+## Windows • open the folder in VS Code and launch the GUI
+
+1. On your Windows laptop open **Start > Visual Studio Code**. In a local window select **File > Open Folder...**. Browse to the cloned `robotics-workshop` folder in your Windows user profile and click **Select Folder**. For the example account this is `C:\Users\student\robotics-workshop`. If PowerShell is already in the clone, `code -n .` is a shortcut.
+2. In the **Explorer** sidebar (Ctrl+Shift+E), look for **operator_app**, **settings**, and **requirements-windows.txt** directly under the project name. If you see only `source` and `workshop.bundle`, reopen the cloned folder.
+3. Choose **Terminal > New Terminal**. The bottom panel should be on **TERMINAL**. Use the dropdown beside **+** to open **PowerShell** or **Windows PowerShell**. A local prompt looks like `PS C:\Users\student\robotics-workshop>`. Use the separate **SSH: labpi** window for Pi commands.
+
+**Local VS Code terminal • confirm the project**
+
+~~~powershell
+Get-Location
+Test-Path .\requirements-windows.txt
+Test-Path .\operator_app\__main__.py
+~~~
+
+Expect the project path and two `True` results. If only your PowerShell working directory is wrong, run `Set-Location "$HOME\robotics-workshop"`. For a new checkout, prepare Python once.
+
+**Local VS Code terminal • first use**
+
+~~~powershell
+py -3.11 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r .\requirements-windows.txt
+~~~
+
+**Local VS Code terminal • every session**
+
+~~~powershell
+.\.venv\Scripts\python.exe -m operator_app
+~~~
+
+With the wired controller plugged into Windows, move a stick and watch the axes in **Local preview**. Once the Pi stack is running, enter the assigned hostname and click **Connect**. The terminal stays busy while the GUI runs. Choose **Terminal > New Terminal** for another prompt, or close the GUI with **X** to get the original prompt back. To change the mapping, open **settings > operator.json** in the local Explorer, save with **Ctrl+S**, and relaunch.
+
 ## Project tree
 
 ```text
@@ -42,7 +73,7 @@ robotics-workshop/
   runs/                 host-mounted experiment folders, ignored by Git
 ```
 
-## Everyday commands
+## Run the Pi stack
 
 **Pi host over SSH, repository root**
 
@@ -58,17 +89,11 @@ docker compose exec robot lab-env bash
 ros2 topic echo /turtle1/pose --once
 ```
 
-**Windows PowerShell, local repository root**
-
-```powershell
-.\.venv\Scripts\python.exe -m operator_app
-```
-
 Type the station's verified hostname into the GUI and connect with the stick centered. UDP commands travel from Windows port 5006 to Pi port 5005. Feedback returns over the same sockets. The bridge publishes at 20 Hz and zeros commands after 0.50 s of silence. The GUI marks a pose stale after 1.0 s. Telemetry targets 10 Hz.
 
 ## Validation
 
-**Windows PowerShell, repository root after Python setup**
+**Local VS Code terminal • Windows PowerShell in the project root after Python setup**
 
 ```powershell
 .\.venv\Scripts\python.exe -m unittest discover -s tests -v
