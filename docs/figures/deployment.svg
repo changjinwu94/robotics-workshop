@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="218" viewBox="0 0 720 218" font-family="sans-serif">
+<rect x="2" y="3" width="218" height="210" rx="8" fill="#f1f5f7" stroke="#b2c3ca"/>
+<rect x="310" y="3" width="407" height="210" rx="8" fill="#ecf5f0" stroke="#a9c2b6"/>
+<g font-size="16" font-weight="bold" fill="#193e40"><text x="16" y="29">Windows laptop</text><text x="325" y="29">Raspberry Pi • robot container</text></g>
+<g fill="#ffffff" stroke="#9bb4b2" stroke-width="1.2"><rect x="14" y="51" width="194" height="53" rx="5"/><rect x="14" y="143" width="194" height="53" rx="5"/><rect x="323" y="51" width="147" height="53" rx="5"/><rect x="323" y="143" width="147" height="53" rx="5"/><rect x="543" y="51" width="160" height="53" rx="5"/><rect x="543" y="143" width="160" height="53" rx="5"/></g>
+<g fill="none" stroke="#246760" stroke-width="2.6"><path d="M208 78 H316 M470 78 H536 M622 104 V137 M543 171 H477 M323 171 H215"/></g>
+<g fill="#246760"><path d="M314 73 l8 5 -8 5z"/><path d="M534 73 l8 5 -8 5z"/><path d="M617 135 l5 8 5 -8z"/><path d="M479 166 l-8 5 8 5z"/><path d="M217 166 l-8 5 8 5z"/></g>
+<g text-anchor="middle" fill="#163e40"><g font-size="15.5" font-weight="bold"><text x="111" y="74">Joystick → GUI</text><text x="111" y="166">GUI map + age</text><text x="396" y="74">UDP bridge</text><text x="396" y="166">UDP bridge</text><text x="623" y="74">turtlesim</text><text x="623" y="166">turtlesim</text></g>
+<g font-size="13.5"><text x="111" y="94">map axes to v and w</text><text x="111" y="186">show measured pose</text><text x="396" y="94">publish Twist</text><text x="396" y="186">read Pose</text><text x="623" y="94">apply command</text><text x="623" y="186">publish pose</text></g><g font-size="13" fill="#246760"><text x="265" y="67">UDP 5005</text><text x="264" y="160">UDP 5006</text><text x="505" y="67">ROS 2</text><text x="505" y="160">ROS 2</text></g></g>
+</svg>

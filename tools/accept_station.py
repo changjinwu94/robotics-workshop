@@ -28,7 +28,7 @@ def main():
     bag = str(out / "bag")
     print(f"Saving station evidence under {out}", flush=True)
     for filename, args in [
-        ("initial-pose.txt", ["topic", "echo", TOPICS[1], "--once"]),
+        ("initial-pose.txt", ["topic", "echo", TOPICS[1], "turtlesim/msg/Pose", "--once"]),
         ("reset.txt", ["service", "call", "/reset", "std_srvs/srv/Empty", "{}"]),
     ]:
         with (out / filename).open("w") as stream:

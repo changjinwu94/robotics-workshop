@@ -90,6 +90,9 @@ def export(rows, csv_path):
         print(f"Command {a.ns} ns  v={a.v:.3f} w={a.w:.3f}")
         print(f"Pose    {b.ns} ns  v={b.v:.3f} w={b.w:.3f} x={b.x:.3f} y={b.y:.3f}")
         print(f"Recorder interval {(b.ns-a.ns)/1e6:.1f} ms")
+        if comp.pose_before is not None:
+            base = comp.pose_before
+            print(f"Last pre-command pose: x={base.x:.3f} y={base.y:.3f} theta={base.theta:.3f}")
         return True
     print("No matched onset. Record an idle interval, drive forward, then release.")
     return False

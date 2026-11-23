@@ -5,8 +5,12 @@ if [[ $# != 1 || ! $1 =~ ^[[:alnum:]][[:alnum:]_-]*$ ]]; then
   echo "Usage: bash tools/new_run.sh arc01" >&2
   exit 2
 fi
-folder="runs/$1"
-mkdir "$folder"  # Fails clearly if the name already exists; never overwrite evidence.
+target="runs/$1"
+if [[ -e "$target" ]]; then echo "Run already exists: $target" >&2; exit 1; fi
+# Collect metadata off to the side. A failed ROS or Docker query can be retried
+# under the same run name without leaving a half-populated experiment folder.
+folder=$(mktemp -d runs/.new-run-XXXXXXXX)
+trap 'rm -rf -- "$folder"' EXIT
 git rev-parse HEAD > "$folder/pi-commit.txt"
 git status --porcelain > "$folder/pi-status.txt"
 git diff --binary HEAD > "$folder/pi-tracked.patch"
@@ -31,4 +35,7 @@ Starting pose and reset procedure:
 Maneuver and approximate timing:
 Observation:
 NOTES
-echo "Run folder ready: $folder. Copy the Windows operator-session.json and fill notes.txt."
+mv -nT -- "$folder" "$target"
+if [[ -d "$folder" ]]; then echo "Run name taken concurrently: $target" >&2; exit 1; fi
+trap - EXIT
+echo "Run folder ready: $target. Copy the Windows operator-session.json and fill notes.txt."
