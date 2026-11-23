@@ -18,5 +18,6 @@ COPY tools /opt/lab/tools
 COPY docker/lab-env /usr/local/bin/lab-env
 RUN chmod 755 /usr/local/bin/lab-env
 ENV QT_QPA_PLATFORM=offscreen ROS_LOCALHOST_ONLY=1
+RUN /usr/local/bin/lab-env python3 /opt/lab/tools/verify_headless.py
 ENTRYPOINT ["/usr/local/bin/lab-env"]
 CMD ["ros2", "launch", "robot_lab", "workshop.launch.py"]
