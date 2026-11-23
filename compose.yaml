@@ -1,0 +1,16 @@
+services:
+  robot:
+    build: .
+    init: true
+    user: "${LAB_UID:-1000}:${LAB_GID:-1000}"
+    environment:
+      HOME: /tmp
+      ROS_HOME: /tmp/workshop-ros
+      ROS_DOMAIN_ID: "0"
+      ROS_LOCALHOST_ONLY: "1"
+      QT_QPA_PLATFORM: offscreen
+    ports:
+      - "5005:5005/udp"
+    volumes:
+      - ./runs:/runs
+    stop_grace_period: 10s

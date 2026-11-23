@@ -1,0 +1,2 @@
+# CPython 3.11 x64 from python.org supplies Tk. pygame reads the USB gamepad.
+pygame==2.6.1

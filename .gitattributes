@@ -1,0 +1,8 @@
+* text=auto
+*.py text eol=lf
+*.sh text eol=lf
+docker/lab-env text eol=lf
+Dockerfile text eol=lf
+*.md text eol=lf
+*.svg text eol=lf
+*.pdf binary

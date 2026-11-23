@@ -1,0 +1,12 @@
+{
+  "host": "robot-pi-01.local",
+  "mapping": {
+    "forward_axis": 1,
+    "turn_axis": 0,
+    "forward_sign": -1,
+    "turn_sign": -1,
+    "deadband": 0.12,
+    "max_v": 2.0,
+    "max_w": 2.0
+  }
+}

@@ -1,0 +1,12 @@
+.git
+.venv
+.env
+runs
+local
+docs
+tests
+operator_app
+settings
+__pycache__
+**/__pycache__
+*.bundle

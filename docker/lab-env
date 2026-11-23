@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# docker compose exec starts a new process and skips the container entrypoint.
+# Run commands through this wrapper to load the base ROS and our package overlay.
+set -e
+source /opt/ros/humble/setup.bash
+source /work/install/setup.bash
+exec "$@"
