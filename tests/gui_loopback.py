@@ -22,7 +22,7 @@ class TestStick:
     version = "test fixture"
 
     def read(self):
-        return [-0.5, -0.7]
+        return [-0.5, -0.7], [0, 1], [(1, 1)]
 
     def close(self):
         pass
@@ -56,6 +56,8 @@ def check():
                 time.sleep(0.02)
 
         try:
+            assert "axes: [-0.500, -0.700, -1.000, 1.000]" in ui.input_text.get()
+            assert "buttons: [0, 1]" in ui.input_text.get()
             run(0.35, True)
             assert ui.fresh.get().startswith("FRESH") and x > 5.6
             assert Path(d, "local", "operator-session.json").is_file()

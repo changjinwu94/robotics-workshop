@@ -18,7 +18,7 @@ class JoystickReader:
         self.version = pygame.version.ver
 
     def read(self):
-        """Return all normalized axes. None means disconnected and maps to zero."""
+        """Return (axes, buttons, hats), or None when disconnected."""
         for event in self.pg.event.get():
             if event.type == self.pg.JOYDEVICEREMOVED and self.device is not None:
                 if event.instance_id == self.device.get_instance_id():
@@ -28,7 +28,10 @@ class JoystickReader:
                 self.device = self.pg.joystick.Joystick(0)
             if self.device is not None:
                 self.name = self.device.get_name()
-                return [self.device.get_axis(i) for i in range(self.device.get_numaxes())]
+                axes = [self.device.get_axis(i) for i in range(self.device.get_numaxes())]
+                buttons = [int(self.device.get_button(i)) for i in range(self.device.get_numbuttons())]
+                hats = [self.device.get_hat(i) for i in range(self.device.get_numhats())]
+                return axes, buttons, hats
         except self.pg.error:
             self.device = None
         self.name = "No controller"

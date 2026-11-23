@@ -7,7 +7,6 @@ import subprocess
 import time
 import tkinter as tk
 from dataclasses import asdict
-from pathlib import Path
 from tkinter import ttk
 
 from robot_lab.link import OperatorLink
@@ -49,7 +48,11 @@ class OperatorWindow:
         self.button = ttk.Button(row, text="Connect", command=self.toggle)
         self.button.pack(side="left")
         ttk.Checkbutton(frame, text="Pause command packets", variable=self.pause_tx).pack(anchor="w", pady=4)
-        for var in (self.input_text, self.command_text, self.status):
+        joy_frame = ttk.LabelFrame(frame, text="Controller input (Joy format)", padding=8)
+        joy_frame.pack(fill="x", pady=(2, 4))
+        ttk.Label(joy_frame, textvariable=self.input_text, font="TkFixedFont",
+                  justify="left", wraplength=520).pack(anchor="w")
+        for var in (self.command_text, self.status):
             ttk.Label(frame, textvariable=var, wraplength=570).pack(anchor="w", pady=2)
         self.badge = tk.Label(frame, textvariable=self.fresh, anchor="w", padx=7, pady=3)
         self.badge.pack(fill="x", pady=(8, 4))
@@ -105,15 +108,21 @@ class OperatorWindow:
         self.pose_text.set("No pose received")
 
     def tick(self):
-        axes = self.reader.read()
+        sample = self.reader.read()
         v, w = 0.0, 0.0
         label = self.reader.name
-        if axes is not None:
-            label += "   " + "   ".join(f"A{i} {a:+.2f}" for i, a in enumerate(axes))
+        axes, buttons, hats = sample if sample is not None else ([], [], [])
+        # joy_node appends two axes per hat: positive left and positive up.
+        # Keep the original device axes for the velocity mapping below.
+        display_axes = axes + [value for x, y in hats for value in (-x, y)]
+        axis_values = ", ".join(f"{axis:.3f}" for axis in display_axes)
+        button_values = ", ".join(str(button) for button in buttons)
+        label += f"\naxes: [{axis_values}]\nbuttons: [{button_values}]"
+        if sample is not None:
             try:
                 v, w = self.mapping.velocity(axes)
             except ValueError as exc:
-                label += f"   {exc}"
+                label += f"\n{exc}"
         self.input_text.set(label)
         action = "PREVIEW" if not self.link else ("PAUSED" if self.pause_tx.get() else "SENDING")
         self.command_text.set(f"{action}   requested v {v:+.2f} u/s    w {w:+.2f} rad/s")

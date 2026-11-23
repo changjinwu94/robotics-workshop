@@ -102,7 +102,7 @@ Leave the GUI running. Use a second local VS Code terminal for these checks.
 **Local VS Code terminal • second Windows PowerShell prompt**
 
 ~~~powershell
-$Pi = "robot-pi-01.local"
+$Pi = "robot01.local"
 [Net.Dns]::GetHostAddresses($Pi) | Where-Object AddressFamily -eq InterNetwork
 Test-NetConnection $Pi -Port 22
 Get-NetConnectionProfile
@@ -132,7 +132,7 @@ For an approved **Private** network, a lab administrator can allow UDP 5006 from
 **Windows PowerShell (Administrator) • scoped firewall rule**
 
 ~~~powershell
-$Pi = "robot-pi-01.local"
+$Pi = "robot01.local"
 $addresses = [Net.Dns]::GetHostAddresses($Pi)
 $ipv4 = $addresses | Where-Object AddressFamily -eq InterNetwork
 $source = @($ipv4)[0].IPAddressToString

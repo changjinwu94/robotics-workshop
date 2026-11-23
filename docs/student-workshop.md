@@ -105,7 +105,7 @@ A hostname names a machine. DHCP assigns its current IP address. A port selects 
 **Local VS Code terminal • Windows PowerShell**
 
 ~~~powershell
-$Pi = "robot-pi-01.local"
+$Pi = "robot01.local"
 [Net.Dns]::GetHostAddresses($Pi) | Where-Object AddressFamily -eq InterNetwork
 Test-NetConnection $Pi -Port 22
 ssh "robot@$Pi"

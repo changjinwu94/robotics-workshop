@@ -1,5 +1,5 @@
 {
-  "host": "robot-pi-01.local",
+  "host": "robot01.local",
   "mapping": {
     "forward_axis": 1,
     "turn_axis": 0,

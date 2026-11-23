@@ -15,52 +15,53 @@ Use this guide before the 4-hour-40-minute class, or to rebuild a station later.
 
 ### Image a fresh SD card
 
-Use a Pi 4 power supply and a microSD card with space for the ROS image and recordings. A 32 GB card is a practical workshop choice. In Raspberry Pi Imager select Raspberry Pi 4, then the **64-bit Ubuntu Server 22.04 LTS preinstalled Raspberry Pi image**. If needed choose **Use custom** and select `ubuntu-22.04.5-preinstalled-server-arm64+raspi.img.xz` from the Ubuntu release directory. Selecting the target SD card and writing an image erases its existing contents. [Ubuntu Raspberry Pi images](https://cdimage.ubuntu.com/releases/22.04/release/)
+Use a Pi 4 power supply and a 32 GB microSD card. In Raspberry Pi Imager choose **Raspberry Pi 4 > Other general-purpose OS > Ubuntu > Ubuntu Server 22.04.5 LTS (64-bit)**. This is the Jammy ARM64 preinstalled server image. Confirm both **Server** and **64-bit**. [Raspberry Pi Imager](https://www.raspberrypi.com/documentation/computers/imager.html)
 
-Use Imager's OS customization if offered for this image. Set a unique hostname such as `robot-pi-01`, set the station username (examples use `robot`), enable SSH and configure the classroom SSID/country for this initial preparation. If the image does not apply these settings, complete first boot at a temporary console with the lab account and enroll the Pi on the WLAN before using SSH. Wait for cloud-init to finish.
+If the image is absent, download the Raspberry Pi Generic 64-bit ARM preinstalled server image and select **Use custom**. The filename is `ubuntu-22.04.5-preinstalled-server-arm64+raspi.img.xz`. If Imager does not offer Customisation for the custom image, use an instructor-prepared card or a temporary console to complete setup. [Canonical image downloads](https://cdimage.ubuntu.com/ubuntu/releases/jammy/release/)
 
-**Pi host • first-boot console or existing SSH terminal**
+### Set up headless access before writing
 
-~~~bash
-cloud-init status --wait
-uname -m
-dpkg --print-architecture
-cat /etc/os-release
-ip -4 -br addr
-~~~
+1. Assign a unique two-digit hostname to each Pi: `robot01`, `robot02`, and so on. Enter the bare name in Imager. Set the time zone and keyboard layout. Create the Pi account (examples use `robot`) and choose a password.
+2. Enter the classroom Wi-Fi SSID and password. Select the local Wi-Fi country if prompted (TW in Taiwan). Put the laptop on the same reachable network. Use Ethernet on that network if Wi-Fi client isolation blocks access.
+3. Under **Remote Access**, enable **SSH**. Use password authentication with your Pi account password, or select your public key if using key authentication.
+4. Confirm the microSD card by capacity and drive letter. Writing erases that card. Wait for verification, eject safely, insert it into the unpowered Pi, and power on. Allow a few minutes for first boot.
 
-**Expected result.** The Pi reports `aarch64`, `arm64` and Ubuntu 22.04. Read the IPv4 address of the connected Wi-Fi interface and record it as the DHCP fallback. A Docker bridge address belongs to a different interface.
+See pages 14–15 of the [Raspberry Pi 4 guide](https://chatgpt.com/library?file_id=libfile_a2e7d557eb6c81919172d85894b5bc5f&account_id=personal) for the setup reference. Continue to the next page for the first SSH login.
 
 <!-- page -->
 <!-- section: Headless access -->
 ## Verify the hostname before deployment
 
-Use a different number for each Pi. Set the hostname once if the Imager settings have not already done so. If `/etc/hosts` contains a `127.0.1.1` entry for the old Pi name, edit that entry to match. Keep the ordinary localhost entry intact.
+Open **Terminal > New Terminal** in your local Windows VS Code window and select **PowerShell**. Replace the example hostname and account with your Imager settings. If `ssh -V` fails, install Windows OpenSSH Client and reopen VS Code. [Microsoft OpenSSH](https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse)
 
-**Pi host • first-boot console or existing SSH terminal**
-
-~~~bash
-sudo hostnamectl set-hostname robot-pi-01
-sudo apt update
-sudo apt install -y openssh-server avahi-daemon git curl ca-certificates
-sudo systemctl enable --now ssh avahi-daemon
-hostname
-systemctl is-active ssh avahi-daemon
-ip -4 -br addr
-~~~
-
-On Windows, open Visual Studio Code from Start. Choose **Terminal > New Terminal**. In the bottom **TERMINAL** panel select a local **PowerShell** profile from the dropdown beside **+**. Run the Windows lines there. If `ssh -V` fails, install **OpenSSH Client** in Windows Optional Features and reopen VS Code. [Microsoft OpenSSH](https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse)
-
-**Local VS Code terminal • Windows PowerShell on the assigned station**
+**Local VS Code terminal • Windows PowerShell**
 
 ~~~powershell
-$Pi = "robot-pi-01.local"
-[Net.Dns]::GetHostAddresses($Pi) | Where-Object AddressFamily -eq InterNetwork
+$Pi = "robot01.local"
 Test-NetConnection $Pi -Port 22
 ssh "robot@$Pi"
 ~~~
 
-Confirm the first connection's host key fingerprint against the Pi console (run `ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub` when the displayed key type is ED25519). Log in with your assigned account. Type `hostname` in the resulting shell and `exit` to return to Windows.
+If the name does not resolve, get the Pi's current DHCP IPv4 address from the router or instructor, assign it to `$Pi`, and repeat the port check and SSH. If the IP also fails, check boot, Wi-Fi and client isolation, or try Ethernet. If refused, check that SSH was enabled. If denied, verify the account and authentication method.
+
+Verify the first host key fingerprint with the instructor or a trusted Pi console before accepting it. Use the Pi account password if prompted.
+
+**Pi host • after SSH connects**
+
+~~~bash
+cloud-init status --wait
+hostname
+cat /etc/os-release
+uname -m
+dpkg --print-architecture
+ip -4 -br addr
+sudo apt update
+sudo apt install -y avahi-daemon git curl ca-certificates
+sudo systemctl enable --now avahi-daemon
+exit
+~~~
+
+Expect Ubuntu 22.04, `aarch64` and `arm64`. Record the address on the connected Wi-Fi or Ethernet interface. Avahi can advertise the `.local` hostname if your network passes mDNS.
 
 **Save the verified target.** In local VS Code open the command palette, select **Remote-SSH: Open SSH Configuration File**, and choose the file in your Windows user profile, normally `%USERPROFILE%\.ssh\config`. Add the following entry. Match `HostName` and `User` to the station.
 
@@ -68,7 +69,7 @@ Confirm the first connection's host key fingerprint against the Pi console (run 
 
 ~~~text
 Host labpi
-    HostName robot-pi-01.local
+    HostName robot01.local
     User robot
 ~~~
 
@@ -162,16 +163,23 @@ From a fresh Ubuntu Jammy installation, the included installer adds Docker's off
 
 Keep the Windows project open. In a second VS Code window press **Ctrl+Shift+P**, select **Remote-SSH: Connect to Host...**, and choose `labpi`. Once the status bar shows **SSH: labpi**, choose **File > Open Folder...**, enter `/home/robot/robotics-workshop` (adjust for the station user), then choose **Terminal > New Terminal**.
 
-**Pi host over SSH • integrated terminal in the remote VS Code window**
+**Pi host over SSH • install only if Docker is missing**
 
 ~~~bash
 cd ~/robotics-workshop
 sudo bash tools/install_docker_ubuntu.sh
-sudo usermod -aG docker "$USER"
+~~~
+
+**Pi host over SSH • grant the workshop account access**
+
+The `docker` group grants **root-level privileges on the Pi**. Add only the trusted workshop login. Run this even with an existing Docker installation if the workshop account lacks access. [Docker post-installation steps](https://docs.docker.com/engine/install/linux-postinstall/)
+
+~~~bash
+sudo usermod -aG docker "$(id -un)"
 exit
 ~~~
 
-Close the remote VS Code connection after changing group membership. In the local VS Code PowerShell terminal run `ssh labpi` to obtain a fresh Pi login for the following commands. Membership in the Docker group grants host-level administrative capability. On centrally managed stations the administrator can prepare the user or run Docker commands for the class.
+Close the remote VS Code connection. From local Windows PowerShell run `ssh labpi` to load the updated group membership in a fresh SSH session. Run `id -nG` and confirm it includes `docker`. Check that `docker version` shows both Client and Server before building.
 
 **Pi host over SSH • new login**
 
@@ -189,7 +197,7 @@ docker compose exec robot lab-env python3 /opt/lab/tools/accept_station.py
 
 **Expected result.** A completed fresh build includes the real offscreen motion check. The final command runs on the Pi, deliberately moves the simulator, records both topics and reports two PASS results. Disconnect all operator GUIs for that check. The directory `runs` exists in the cloned repo and is mounted as `/runs`. The UID/GID settings let the host user read and edit the files.
 
-**Troubleshoot in order.** A Docker socket permission error calls for a new SSH login. For package download errors, check internet access, DNS and free space. A Qt error belongs to the simulator image. Inspect its build log and `docker compose logs robot`. An occupied UDP port points to another process or second Compose stack using port 5005.
+**Troubleshoot in order.** For a Docker socket permission error, confirm the login belongs to the `docker` group and reconnect over SSH. Use `docker compose up -d` to start in the background. For package download errors, check internet access, DNS and free space. A Qt error belongs to the simulator image. Inspect its build log and `docker compose logs robot`. An occupied UDP port points to another process or second Compose stack using port 5005.
 
 **Where ROS runs.** Both nodes share one container, where discovery uses localhost. Docker publishes only the Pi command port as UDP 5005 to the classroom network. `docker compose exec robot lab-env bash` loads both the base Humble environment and the workshop overlay. [Official ROS image](https://hub.docker.com/_/ros) · [Headless turtlesim example](https://github.com/livekit/ros-portal/blob/main/docs/tutorials.md)
 
