@@ -107,3 +107,7 @@ docker compose exec robot lab-env python3 /opt/lab/tools/accept_station.py
 ```
 
 The instructor guide names the environment used for the delivered checks and includes a sign-off table for the Windows, Pi 4, joystick and classroom Wi-Fi checks. Experiment bags stay alongside the recorded Windows and Pi revisions and settings. The baseline tag rebuilds the source. Preserve the built image as described in the setup guide when the exact package set matters.
+
+## Optional TigerVNC display
+
+See [the workshop turtle in TigerVNC](docs/tigervnc.md) while using the operator app.

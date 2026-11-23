@@ -1,0 +1,9 @@
+services:
+  robot:
+    build:
+      target: workshop-vnc
+    ports:
+      - "127.0.0.1:5901:5901/tcp"
+    environment:
+      DISPLAY: ":1"
+      QT_QPA_PLATFORM: xcb

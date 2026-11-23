@@ -1,4 +1,4 @@
-FROM ros:humble-ros-base-jammy
+FROM ros:humble-ros-base-jammy AS workshop-base
 
 # The official image provides the ROS apt repository for Jammy on ARM64 and AMD64.
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -21,3 +21,12 @@ ENV QT_QPA_PLATFORM=offscreen ROS_LOCALHOST_ONLY=1
 RUN /usr/local/bin/lab-env python3 /opt/lab/tools/verify_headless.py
 ENTRYPOINT ["/usr/local/bin/lab-env"]
 CMD ["ros2", "launch", "robot_lab", "workshop.launch.py"]
+
+FROM workshop-base AS workshop-vnc
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    tigervnc-standalone-server x11-utils xfonts-base \
+    && rm -rf /var/lib/apt/lists/*
+COPY --chmod=755 docker/lab-vnc /usr/local/bin/lab-vnc
+CMD ["/usr/local/bin/lab-vnc"]
+
+FROM workshop-base AS workshop-headless

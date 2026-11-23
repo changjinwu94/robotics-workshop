@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Publish VNC through the loopback-only Compose port and Windows SSH tunnel.
+Xtigervnc "$DISPLAY" -geometry 800x600 -depth 24 \
+    -rfbport 5901 -localhost no -SecurityTypes None -nolisten tcp -ac &
+vnc_pid=$!
+
+for attempt in {1..50}; do
+    if xdpyinfo >/dev/null 2>&1; then
+        exec ros2 launch robot_lab workshop.launch.py
+    fi
+    if ! kill -0 "$vnc_pid" 2>/dev/null; then
+        echo "TigerVNC exited before its display was ready." >&2
+        exit 1
+    fi
+    sleep 0.2
+done
+echo "Timed out waiting for TigerVNC display $DISPLAY." >&2
+exit 1
